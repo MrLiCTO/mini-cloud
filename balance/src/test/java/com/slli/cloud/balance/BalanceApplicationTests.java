@@ -16,7 +16,9 @@ public class BalanceApplicationTests {
 	@Autowired
 	private RabbitTemplate rabbitTemplate;
 
-	@Test//http://www.tuicool.com/articles/AvUnE3J
+	@Test
+	//http://www.tuicool.com/articles/AvUnE3J
+	//http://blog.csdn.net/mra__s__/article/details/55011530
 	public void contextLoads() {
 		rabbitTemplate.setConfirmCallback((correlationData,ack,cause)->{
 
