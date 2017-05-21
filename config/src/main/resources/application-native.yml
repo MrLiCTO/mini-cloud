@@ -1,0 +1,19 @@
+spring:
+  rabbitmq:
+          host: localhost
+          port: 5672
+          username: guest
+          password: guest
+  cloud:
+    config:
+      server:
+        #git:
+          #uri: https://github.com/MrLiCTO/app-cloud/
+          #search-paths: config/src/main/resources/config
+        native:
+          search-locations: classpath:/config
+server:
+  port: 8886
+#eureka:
+ # host: localhost
+  #port: 8761

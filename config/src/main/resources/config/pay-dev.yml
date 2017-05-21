@@ -1,0 +1,15 @@
+spring:
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+  datasource:
+    type: org.apache.tomcat.jdbc.pool.DataSource
+    username: root
+    password: root
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/bigcloud?useUnicode=true&characterEncoding=utf-8
+  redis:
+    host: localhost
+    port: 6379
