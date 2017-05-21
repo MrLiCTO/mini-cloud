@@ -1,8 +1,10 @@
-package com.slli.cloud.common.model;
+package com.slli.cloud.balance.model;
 
 import lombok.Data;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.Table;
 
 /**
@@ -10,8 +12,10 @@ import javax.persistence.Table;
  */
 @Data
 @Entity
-@Table(name = "balance")
-public class Balance {
+@Table(name = "account")
+public class Account {
+    @Id
+    @Column(unique = true, nullable = false)
     private Long id;//主键id
     private String user;//用户
     private double balance;//金钱
