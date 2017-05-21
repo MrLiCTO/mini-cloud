@@ -12,7 +12,7 @@ import javax.persistence.Table;
  */
 @Data
 @Entity
-@Table(name = "order")
+@Table(name = "trade_record")
 public class TradeRecord {
     @Id
     @Column(unique = true, nullable = false)
