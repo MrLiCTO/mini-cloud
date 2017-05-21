@@ -23,11 +23,11 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="true" />
         <module name="balance" />
-        <module name="common" />
         <module name="config" />
         <module name="discovery" />
         <module name="pay" />
         <module name="ui" />
+        <module name="universal" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -38,6 +38,7 @@
       <module name="mini-cloud" target="1.8" />
       <module name="pay" target="1.8" />
       <module name="ui" target="1.8" />
+      <module name="universal" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

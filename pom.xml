@@ -26,9 +26,10 @@
     <modules>
         <module>config</module>
         <module>discovery</module>
-        <module>common</module>
         <module>pay</module>
         <module>ui</module>
+        <module>balance</module>
+        <module>universal</module>
     </modules>
     <dependencies>
         <dependency>
