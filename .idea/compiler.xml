@@ -22,12 +22,6 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="true" />
-        <module name="balance" />
-        <module name="config" />
-        <module name="discovery" />
-        <module name="pay" />
-        <module name="ui" />
-        <module name="universal" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

@@ -7,12 +7,7 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/pom.xml" />
-        <option value="$PROJECT_DIR$/config/pom.xml" />
-        <option value="$PROJECT_DIR$/discovery/pom.xml" />
         <option value="$PROJECT_DIR$/common/pom.xml" />
-        <option value="$PROJECT_DIR$/pay/pom.xml" />
-        <option value="$PROJECT_DIR$/balance/pom.xml" />
-        <option value="$PROJECT_DIR$/ui/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">
