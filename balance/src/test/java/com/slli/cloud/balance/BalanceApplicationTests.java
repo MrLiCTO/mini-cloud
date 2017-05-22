@@ -2,10 +2,7 @@ package com.slli.cloud.balance;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -20,9 +17,10 @@ public class BalanceApplicationTests {
 	//http://www.tuicool.com/articles/AvUnE3J
 	//http://blog.csdn.net/mra__s__/article/details/55011530
 	public void contextLoads() {
-		rabbitTemplate.setConfirmCallback((correlationData,ack,cause)->{
-
-		});
+		for(int i=0;i<1000;i++){
+			rabbitTemplate.convertAndSend("pay","hello world!"+i);
+			rabbitTemplate.convertSendAndReceive("pay","hello world!"+i);
+		}
 	}
 
 }
