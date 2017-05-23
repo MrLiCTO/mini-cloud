@@ -63,12 +63,20 @@ public class RabbitMQConfig {
         container.setExposeListenerChannel(true);
         container.setMaxConcurrentConsumers(1);
         container.setConcurrentConsumers(1);
+        container.setRetryDeclarationInterval(1000);
+        container.setDeclarationRetries(10);
         container.setAcknowledgeMode(AcknowledgeMode.MANUAL); //设置确认模式手工确认
         container.setMessageListener(new ChannelAwareMessageListener() {
             public void onMessage(Message message, Channel channel) throws Exception {
                 byte[] body = message.getBody();
-                System.out.println("收到消息 : " + new String(body));
-                channel.basicAck(message.getMessageProperties().getDeliveryTag(), false); //确认消息成功消费
+                String str = new String(body);
+                System.out.println("收到消息 111: " + str);
+                if (str.equals("abcdefg")) {
+                    System.out.println("收到消息 : " + new String(body));
+                    channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
+                } else {
+                    channel.basicAck(message.getMessageProperties().getDeliveryTag(), false); //确认消息成功消费
+                }
             }
 
         });
