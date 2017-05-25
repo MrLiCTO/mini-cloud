@@ -1,12 +1,6 @@
 package com.slli.cloud.balance.config;
 
-import com.rabbitmq.client.Channel;
-import org.springframework.amqp.core.AcknowledgeMode;
-import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
-import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
-import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
@@ -56,32 +50,7 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(balance()).to(defaultExchange()).with(RabbitMQConfig.QUEUE_KEY_BALANCE);
     }*/
 
-    @Bean
-    public SimpleMessageListenerContainer messageContainer(CachingConnectionFactory connectionFactory) {
-        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
-        container.setQueues(payOne());
-        container.setExposeListenerChannel(true);
-        container.setMaxConcurrentConsumers(1);
-        container.setConcurrentConsumers(1);
-        container.setRetryDeclarationInterval(1000);
-        container.setDeclarationRetries(10);
-        container.setAcknowledgeMode(AcknowledgeMode.MANUAL); //设置确认模式手工确认
-        container.setMessageListener(new ChannelAwareMessageListener() {
-            public void onMessage(Message message, Channel channel) throws Exception {
-                byte[] body = message.getBody();
-                String str = new String(body);
-                System.out.println("收到消息 111: " + str);
-                if (str.equals("abcdefg")) {
-                    System.out.println("收到消息 : " + new String(body));
-                    channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
-                } else {
-                    channel.basicAck(message.getMessageProperties().getDeliveryTag(), false); //确认消息成功消费
-                }
-            }
 
-        });
-        return container;
-    }
 
 
 }
