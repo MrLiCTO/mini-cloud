@@ -2,6 +2,8 @@ package com.slli.cloud.balance;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.ConfirmListener;
+import com.slli.cloud.balance.model.Account;
+import com.slli.cloud.balance.repository.AccountRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -22,7 +24,7 @@ public class BalanceApplicationTests {
     //http://blog.csdn.net/mra__s__/article/details/55011530
     public void contextLoads() {
         /*for(int i=0;i<1000;i++){
-			rabbitTemplate.convertAndSend("pay","hello world!"+i);
+            rabbitTemplate.convertAndSend("pay","hello world!"+i);
 			rabbitTemplate.convertSendAndReceive("pay","hello world!"+i);
 		}*/
         Channel channel = rabbitTemplate.getConnectionFactory().createConnection().createChannel(false);
@@ -39,6 +41,19 @@ public class BalanceApplicationTests {
             }
         });
         //channel.basicPublish();
+    }
+
+    @Autowired
+    private AccountRepository accountRepository;
+
+    @Test
+    public void tes() {
+        //rabbitTemplate.convertAndSend("pay","abcdefg");
+        Account account = new Account();
+        account.setBalance(1000);
+        account.setUser("user");
+        accountRepository.save(account);
+
     }
 
 }
