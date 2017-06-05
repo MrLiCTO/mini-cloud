@@ -33,9 +33,6 @@ public class PayApplicationTests {
     @Autowired
     private PayService payService;
 
-    @Autowired
-    private MessageChannel messageChannel;
-
 	@Test
 	//http://www.tuicool.com/articles/AvUnE3J
 	//http://blog.csdn.net/mra__s__/article/details/55011530
@@ -45,14 +42,16 @@ public class PayApplicationTests {
 		account.setBalance(1000);
 		account.setUser("user");
 		accountRepository.save(account);*/
-        TradeRecord tradeRecord = new TradeRecord();
-        tradeRecord.setUser("user");
-        tradeRecord.setCharge(400);
-        tradeRecord.setDescription("交易");
-        tradeRecord.setTradeNo(System.currentTimeMillis()+"");
-        tradeRecord.setFlag(1);
-        payService.senderTx(tradeRecord);
-        Thread.sleep(10000);
+        while (true){
+            TradeRecord tradeRecord = new TradeRecord();
+            tradeRecord.setUser("user");
+            tradeRecord.setCharge(400);
+            tradeRecord.setDescription("交易");
+            tradeRecord.setTradeNo(System.currentTimeMillis()+"");
+            tradeRecord.setFlag(1);
+            payService.senderTx(tradeRecord);
+            Thread.sleep(1000);
+        }
     }
 
     @Test

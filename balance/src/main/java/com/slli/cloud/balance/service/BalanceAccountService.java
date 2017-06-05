@@ -6,6 +6,7 @@ import com.slli.cloud.balance.repository.AccountRepository;
 import com.slli.cloud.balance.repository.TradeRecordRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author 李世龙
@@ -17,7 +18,7 @@ public class BalanceAccountService {
     private TradeRecordRepository tradeRecordRepository;
     @Autowired
     private AccountRepository accountRepository;
-
+    @Transactional(rollbackFor = Exception.class)
     public void trade(TradeRecord tradeRecord) throws Exception {
         String user = tradeRecord.getUser();
         Account account = accountRepository.findByUser(user);

@@ -29,7 +29,7 @@ public class BalanceService {
     }
 
     @Bean
-    public SimpleMessageListenerContainer messageContainer(CachingConnectionFactory connectionFactory,BalanceAccountService balanceAccountService) {
+    public SimpleMessageListenerContainer messageContainer(CachingConnectionFactory connectionFactory, BalanceAccountService balanceAccountService) {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
         container.setQueues(payOne());
         container.setExposeListenerChannel(true);
@@ -38,13 +38,14 @@ public class BalanceService {
         container.setRetryDeclarationInterval(1000);
         container.setDeclarationRetries(10);
         container.setAcknowledgeMode(AcknowledgeMode.MANUAL); //设置确认模式手工确认
+        //container.setAcknowledgeMode(AcknowledgeMode.AUTO); //设置确认模式自动确认
         container.setMessageListener(new ChannelAwareMessageListener() {
             public void onMessage(Message message, Channel channel) throws Exception {
 
                 try {
                     byte[] body = message.getBody();
                     String str = new String(body);
-                    TradeRecord tradeRecord =null;
+                    TradeRecord tradeRecord = null;
                     tradeRecord = JSON.parseObject(str, TradeRecord.class);
 
                     balanceAccountService.trade(tradeRecord);
