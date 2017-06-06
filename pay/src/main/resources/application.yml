@@ -1,2 +1,5 @@
 server:
   port: 8888
+spring:
+  rabbitmq:
+    publisher-confirms: true

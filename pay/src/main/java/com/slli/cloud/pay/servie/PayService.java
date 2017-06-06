@@ -7,9 +7,13 @@ import com.slli.cloud.pay.model.Account;
 import com.slli.cloud.pay.model.TradeRecord;
 import com.slli.cloud.pay.repository.AccountRepository;
 import com.slli.cloud.pay.repository.TradeRecordRepository;
+import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.CorrelationData;
+import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +33,8 @@ import static com.slli.cloud.common.constants.MQContants.*;
 public class PayService {
     @Autowired
     private RabbitTemplate rabbitTemplate;
+    @Autowired
+    private AmqpTemplate amqpTemplate;
     @Autowired
     private TradeRecordRepository tradeRecordRepository;
     @Autowired
@@ -88,6 +94,7 @@ public class PayService {
                 System.out.println("------------------------------------消息消费失败:" + cause);
             }
         });
+
         CorrelationData correlationData = new CorrelationData();
         correlationData.setId(UUID.randomUUID().toString());
         Account one = accountRepository.findOne(1L);
@@ -99,8 +106,16 @@ public class PayService {
         one.setBalance(flag);
         accountRepository.save(one);
         tradeRecordRepository.save(tradeRecord);
-        rabbitTemplate.convertAndSend(ROUT_KEY_PAY,tradeRecord,correlationData);
-
+        tradeRecord.setId(null);
+        //rabbitTemplate.convertAndSend(ROUT_KEY_PAY,tradeRecord,correlationData);
+        org.springframework.amqp.core.MessageProperties messageProperties = new org.springframework.amqp.core.MessageProperties();
+        messageProperties.setCorrelationIdString(correlationData.getId());
+        rabbitTemplate.convertAndSend(ROUT_KEY_PAY,new Message(JSON.toJSONString(tradeRecord).getBytes(),messageProperties),correlationData);
 
     }
+    /*@RabbitListener(queues=QEUE_PAY)
+    public void onMessage(Message message){
+        String s = new String(message.getBody());
+        System.out.println("-----------------------------------------------------------------------"+s);
+    }*/
 }

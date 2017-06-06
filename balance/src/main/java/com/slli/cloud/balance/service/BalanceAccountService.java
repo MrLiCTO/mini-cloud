@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.slli.cloud.common.constants.MQContants.QEUE_PAY;
+
 /**
  * @author 李世龙
  * @create 2017-05-26 18:35
@@ -37,9 +39,8 @@ public class BalanceAccountService {
         tradeRecordRepository.save(tradeRecord);
     }
 
-    @RabbitListener
+   /* @RabbitListener(queues = QEUE_PAY)
     public void onMessage(Message message, Channel channel) throws Exception {
-
         try {
             byte[] body = message.getBody();
             String str = new String(body);
@@ -54,7 +55,5 @@ public class BalanceAccountService {
             channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
             System.out.println("消息消费失败，id为：" + message.getMessageProperties().getCorrelationIdString());
         }
-
-
-    }
+    }*/
 }
