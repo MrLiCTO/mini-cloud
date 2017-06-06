@@ -10,7 +10,6 @@ import com.slli.cloud.pay.repository.TradeRecordRepository;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,9 +44,9 @@ public class PayService {
             Account one = accountRepository.findOne(1L);
             double balance = one.getBalance();
             double flag = balance - tradeRecord.getCharge();
-            /*if (flag < 0) {
+            if (flag < 0) {
                 throw new Exception("没钱了");
-            }*/
+            }
             channel.txSelect();
             channel.basicPublish(EXCHANGE_PAY, ROUT_KEY_PAY, true, MessageProperties.PERSISTENT_BASIC, JSON.toJSONString(tradeRecord).getBytes());
 
