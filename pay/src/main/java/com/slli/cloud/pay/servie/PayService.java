@@ -9,11 +9,13 @@ import com.slli.cloud.pay.repository.AccountRepository;
 import com.slli.cloud.pay.repository.TradeRecordRepository;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.util.UUID;
 
 import static com.slli.cloud.common.constants.MQContants.*;
 
@@ -46,7 +48,18 @@ public class PayService {
             double flag = balance - tradeRecord.getCharge();
             if (flag < 0) {
                 throw new Exception("没钱了");
-            }
+            }/*
+            channel.addConfirmListener(new ConfirmListener(){
+                @Override
+                public void handleAck(long deliveryTag, boolean multiple) throws IOException {
+
+                }
+
+                @Override
+                public void handleNack(long deliveryTag, boolean multiple) throws IOException {
+
+                }
+            });*/
             channel.txSelect();
             channel.basicPublish(EXCHANGE_PAY, ROUT_KEY_PAY, true, MessageProperties.PERSISTENT_BASIC, JSON.toJSONString(tradeRecord).getBytes());
 
@@ -66,5 +79,28 @@ public class PayService {
             throw new Exception();
         }
     }
+    public void senderCr(TradeRecord tradeRecord) throws Exception{//确认模式
+        rabbitTemplate.setConfirmCallback((CorrelationData correlationData, boolean ack, String cause)->{
+            System.out.println("---------------------------------------回调id:" + correlationData);
+            if (ack) {
+                System.out.println("-----------------------------------消息成功消费");
+            } else {
+                System.out.println("------------------------------------消息消费失败:" + cause);
+            }
+        });
+        CorrelationData correlationData = new CorrelationData();
+        correlationData.setId(UUID.randomUUID().toString());
+        Account one = accountRepository.findOne(1L);
+        double balance = one.getBalance();
+        double flag = balance - tradeRecord.getCharge();
+        /*if (flag < 0) {
+            throw new Exception("没钱了");
+        }*/
+        one.setBalance(flag);
+        accountRepository.save(one);
+        tradeRecordRepository.save(tradeRecord);
+        rabbitTemplate.convertAndSend(ROUT_KEY_PAY,tradeRecord,correlationData);
 
+
+    }
 }

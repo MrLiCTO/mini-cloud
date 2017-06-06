@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import static com.slli.cloud.common.constants.MQContants.QEUE_PAY;
+
 /**
  * 余额
  *
@@ -25,7 +27,7 @@ import org.springframework.context.annotation.Configuration;
 public class BalanceService {
     @Bean
     public Queue payOne() {
-        return new Queue("pay_1", true);
+        return new Queue(QEUE_PAY, true);
     }
 
     @Bean
@@ -51,8 +53,10 @@ public class BalanceService {
                     balanceAccountService.trade(tradeRecord);
 
                     channel.basicAck(message.getMessageProperties().getDeliveryTag(), false); //确认消息成功消费
+                    System.out.println("消息消费成功，id为："+message.getMessageProperties().getCorrelationIdString());
                 } catch (Exception e) {
                     channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
+                    System.out.println("消息消费失败，id为："+message.getMessageProperties().getCorrelationIdString());
                 }
 
 
