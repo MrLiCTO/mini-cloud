@@ -6,6 +6,8 @@ import com.slli.cloud.balance.model.Account;
 import com.slli.cloud.balance.model.TradeRecord;
 import com.slli.cloud.balance.repository.AccountRepository;
 import com.slli.cloud.balance.repository.TradeRecordRepository;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,19 +26,30 @@ public class BalanceAccountService {
     private TradeRecordRepository tradeRecordRepository;
     @Autowired
     private AccountRepository accountRepository;
+    @Autowired
+    private CuratorFramework curatorFramework;
 
     @Transactional(rollbackFor = Exception.class)
     public void trade(TradeRecord tradeRecord) throws Exception {
         String user = tradeRecord.getUser();
         Account account = accountRepository.findByUser(user);
-        double balance = account.getBalance();
-        double charge = tradeRecord.getCharge();
-        if (balance < charge) {
-            throw new Exception("没钱了");
+        InterProcessMutex mutex = new InterProcessMutex(curatorFramework, "/mutex-" + account.getId().longValue());
+        try {
+            mutex.acquire();
+            account = accountRepository.findByUser(user);
+            double balance = account.getBalance();
+            double charge = tradeRecord.getCharge();
+            if (balance < charge) {
+                throw new Exception("没钱了");
+            }
+            account.setBalance(balance - charge);
+            accountRepository.save(account);
+            tradeRecordRepository.save(tradeRecord);
+        }catch (Exception e){
+            throw new Exception();
+        }finally {
+            mutex.release();
         }
-        account.setBalance(balance - charge);
-        accountRepository.save(account);
-        tradeRecordRepository.save(tradeRecord);
     }
 
    /* @RabbitListener(queues = QEUE_PAY)

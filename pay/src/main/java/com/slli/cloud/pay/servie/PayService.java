@@ -7,6 +7,10 @@ import com.slli.cloud.pay.model.Account;
 import com.slli.cloud.pay.model.TradeRecord;
 import com.slli.cloud.pay.repository.AccountRepository;
 import com.slli.cloud.pay.repository.TradeRecordRepository;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.recipes.atomic.DistributedAtomicInteger;
+import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -83,21 +87,36 @@ public class PayService {
             throw new Exception();
         }
     }
-    public void senderCr(TradeRecord tradeRecord) throws Exception{//确认模式
+
+    @Autowired
+    private CuratorFramework  curatorFramework;
+
+    @Transactional(rollbackFor = Exception.class)
+    public void senderCr(TradeRecord tradeRecord, Long id) throws Exception {//确认模式
         CorrelationData correlationData = new CorrelationData();
         correlationData.setId(UUID.randomUUID().toString());
-        Account one = accountRepository.findOne(1L);
-        double balance = one.getBalance();
-        double flag = balance - tradeRecord.getCharge();
-        if (flag < 0) {
-            throw new Exception("没钱了");
+        final InterProcessMutex mutex = new InterProcessMutex(curatorFramework, "/mutex-" + id.longValue());
+        try {
+            mutex.acquire();//基于zookeeper的分布式锁
+            Account one = accountRepository.findOne(id);
+            double balance = one.getBalance();
+            double flag = balance - tradeRecord.getCharge();
+            if (flag < 0) {
+                throw new Exception("没钱了");
+            }
+            one.setBalance(flag);
+            accountRepository.save(one);
+            tradeRecordRepository.save(tradeRecord);
+        } catch (Exception e) {
+            throw new Exception();
+        } finally {
+            mutex.release();//释放锁
+            curatorFramework.close();
         }
-        one.setBalance(flag);
-        accountRepository.save(one);
-        tradeRecordRepository.save(tradeRecord);
+
         tradeRecord.setId(null);
         //rabbitTemplate.convertAndSend(ROUT_KEY_PAY,tradeRecord,correlationData);
-        Message message= MessageBuilder
+        Message message = MessageBuilder
                 .withBody(JSON.toJSONString(tradeRecord).getBytes())
                 .setDeliveryMode(MessageDeliveryMode.PERSISTENT)
                 .setCorrelationIdString(correlationData.getId())
@@ -107,11 +126,11 @@ public class PayService {
             @Override
             public Message postProcessMessage(Message message) throws AmqpException {
                 String id = correlationData.getId();
-                message.getMessageProperties().setHeader("id",id);
+                message.getMessageProperties().setHeader("id", id);
                 return message;
             }
         });
-        rabbitTemplate.convertAndSend(ROUT_KEY_PAY,tradeRecord,correlationData);
+        rabbitTemplate.convertAndSend(ROUT_KEY_PAY, tradeRecord, correlationData);
 
     }
     /*@RabbitListener(queues=QEUE_PAY)

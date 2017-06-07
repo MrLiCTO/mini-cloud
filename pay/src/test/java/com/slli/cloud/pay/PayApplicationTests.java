@@ -3,6 +3,9 @@ package com.slli.cloud.pay;
 import com.slli.cloud.pay.model.TradeRecord;
 import com.slli.cloud.pay.repository.AccountRepository;
 import com.slli.cloud.pay.servie.PayService;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.zookeeper.CreateMode;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -40,13 +43,15 @@ public class PayApplicationTests {
             tradeRecord.setTradeNo(System.currentTimeMillis()+"");
             tradeRecord.setFlag(1);
             //payService.senderTx(tradeRecord);
-            payService.senderCr(tradeRecord);
+            payService.senderCr(tradeRecord,1L);
             Thread.sleep(1000);
         }
     }
-
+    @Autowired
+    private CuratorFramework curatorFramework;
     @Test
 	public void testChannel() throws Exception {
+        curatorFramework.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT).forPath("/super/c1","c1内容".getBytes());
         /*rabbitTemplate.setConfirmCallback((CorrelationData correlationData, boolean ack, String cause)->{
             System.out.println(" 回调id:" + correlationData);
             if (ack) {
