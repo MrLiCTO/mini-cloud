@@ -7,13 +7,11 @@ import com.slli.cloud.pay.model.Account;
 import com.slli.cloud.pay.model.TradeRecord;
 import com.slli.cloud.pay.repository.AccountRepository;
 import com.slli.cloud.pay.repository.TradeRecordRepository;
-import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.AmqpException;
+import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.CorrelationData;
-import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -86,15 +84,6 @@ public class PayService {
         }
     }
     public void senderCr(TradeRecord tradeRecord) throws Exception{//确认模式
-        rabbitTemplate.setConfirmCallback((CorrelationData correlationData, boolean ack, String cause)->{
-            System.out.println("---------------------------------------回调id:" + correlationData);
-            if (ack) {
-                System.out.println("-----------------------------------消息成功消费");
-            } else {
-                System.out.println("------------------------------------消息消费失败:" + cause);
-            }
-        });
-
         CorrelationData correlationData = new CorrelationData();
         correlationData.setId(UUID.randomUUID().toString());
         Account one = accountRepository.findOne(1L);
@@ -108,9 +97,21 @@ public class PayService {
         tradeRecordRepository.save(tradeRecord);
         tradeRecord.setId(null);
         //rabbitTemplate.convertAndSend(ROUT_KEY_PAY,tradeRecord,correlationData);
-        org.springframework.amqp.core.MessageProperties messageProperties = new org.springframework.amqp.core.MessageProperties();
-        messageProperties.setCorrelationIdString(correlationData.getId());
-        rabbitTemplate.convertAndSend(ROUT_KEY_PAY,new Message(JSON.toJSONString(tradeRecord).getBytes(),messageProperties),correlationData);
+        Message message= MessageBuilder
+                .withBody(JSON.toJSONString(tradeRecord).getBytes())
+                .setDeliveryMode(MessageDeliveryMode.PERSISTENT)
+                .setCorrelationIdString(correlationData.getId())
+                .build();
+
+        rabbitTemplate.setBeforePublishPostProcessors(new MessagePostProcessor() {
+            @Override
+            public Message postProcessMessage(Message message) throws AmqpException {
+                String id = correlationData.getId();
+                message.getMessageProperties().setHeader("id",id);
+                return message;
+            }
+        });
+        rabbitTemplate.convertAndSend(ROUT_KEY_PAY,tradeRecord,correlationData);
 
     }
     /*@RabbitListener(queues=QEUE_PAY)

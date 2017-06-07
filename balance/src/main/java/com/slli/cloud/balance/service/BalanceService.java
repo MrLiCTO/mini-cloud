@@ -51,12 +51,11 @@ public class BalanceService {
                     tradeRecord = JSON.parseObject(str, TradeRecord.class);
 
                     balanceAccountService.trade(tradeRecord);
-
                     channel.basicAck(message.getMessageProperties().getDeliveryTag(), false); //确认消息成功消费
-                    System.out.println("消息消费成功，id为："+message.getMessageProperties().getCorrelationIdString());
+                    System.out.println("消息消费成功，id为："+message.getMessageProperties().getHeaders().get("id"));
                 } catch (Exception e) {
                     channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
-                    System.out.println("消息消费失败，id为："+message.getMessageProperties().getCorrelationIdString());
+                    System.out.println("消息消费失败，id为：" + message.getMessageProperties().getHeaders().get("id"));
                 }
 
 
