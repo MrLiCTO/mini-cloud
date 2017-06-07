@@ -89,9 +89,9 @@ public class PayService {
         Account one = accountRepository.findOne(1L);
         double balance = one.getBalance();
         double flag = balance - tradeRecord.getCharge();
-        /*if (flag < 0) {
+        if (flag < 0) {
             throw new Exception("没钱了");
-        }*/
+        }
         one.setBalance(flag);
         accountRepository.save(one);
         tradeRecordRepository.save(tradeRecord);
