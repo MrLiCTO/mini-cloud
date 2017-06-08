@@ -3,6 +3,7 @@ package com.slli.cloud.pay.servie;
 import com.alibaba.fastjson.JSON;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.MessageProperties;
+import com.slli.cloud.common.utils.BeanUtils;
 import com.slli.cloud.pay.model.Account;
 import com.slli.cloud.pay.model.TradeRecord;
 import com.slli.cloud.pay.repository.AccountRepository;
@@ -111,10 +112,10 @@ public class PayService {
             throw new Exception();
         } finally {
             mutex.release();//释放锁
-            curatorFramework.close();
         }
-
-        tradeRecord.setId(null);
+        TradeRecord tr = new TradeRecord();
+        BeanUtils.copyProperties(tradeRecord,tr);
+        tr.setId(null);
         //rabbitTemplate.convertAndSend(ROUT_KEY_PAY,tradeRecord,correlationData);
         Message message = MessageBuilder
                 .withBody(JSON.toJSONString(tradeRecord).getBytes())
@@ -130,7 +131,7 @@ public class PayService {
                 return message;
             }
         });
-        rabbitTemplate.convertAndSend(ROUT_KEY_PAY, tradeRecord, correlationData);
+        rabbitTemplate.convertAndSend(ROUT_KEY_PAY, tr, correlationData);
 
     }
     /*@RabbitListener(queues=QEUE_PAY)
